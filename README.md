@@ -10,6 +10,7 @@
 
 ## Goal:
 * Find is the subset of p that are within P.
+* Avoid 2D projection. All spatial relation tests on sphere. 
 
 ## Challenge: 
 Both the points and the polygon are on the surfaces of a sphere (rather than in a cartesian space), which means that the nodes N are great circles rather than rhumb lines.
