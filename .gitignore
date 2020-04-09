@@ -3,6 +3,7 @@
 *.directory
 *.out
 *.so
+*.hdf
 build/
 sphereGIS.py
 sphereGIS_wrap.cpp
