@@ -1,0 +1,8 @@
+*.pyc
+*.ipynb_checkpoints/*
+*.directory
+*.out
+*.so
+build/
+sphereGIS.py
+sphereGIS_wrap.cpp
