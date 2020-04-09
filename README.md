@@ -49,12 +49,14 @@ A brute-force approach to retrieve the spherical convex hull is (as described on
 * Draw edges between each node. I.e. create a great circle that crosses each pair of nodes. Note: Draw them in both directions
 * For each of the just created great circles, verify if all nodes are on the hemisphere defined by the great circle. If yes, this great circle is an edge/constraint of the convex hull. If no, discard the great circle.
 
+This approach works well for sufficiently small polygons (< 1000 nodes) and is implemented using numpy in [contrib/convexHullNP.ipynb](https://github.com/NiklasPhabian/SphereGIS/blob/master/contrib/convexHullNP.ipynb)
+
 ### Adapted Graham Scan 
 We here implement an iterative approach through a spherical adaptation of the [Graham Scan](https://en.wikipedia.org/wiki/Graham_scan):
 
 1. We define the edges of the convex hull to have a direction; i.e. going FROM a node TO a node. 
 2. We find a first pair of nodes (a FROM and a TO node) that are an edge of the convex hull. Since we know that at least one of the polygon's edges is also an edge of the convex, we can look for the first edge of the convex in the edges of the polygon.
-3. We declare this first TO node as the next FROM node.
+3. We declare the TO node as the next FROM node.
 4. For this FROM node, we find its TO node. We do this by scanning all of the polygon nodes (except for the ones that already have been declared a TO node; but this is merely an optimization). We can discard a candidate convex edge as soon as we find a single point that is outside of its hemisphere.
 5. We repeat step 3 and 4 until the TO node equals our very first FROM node, i.e. the convex hull is closed.
 
