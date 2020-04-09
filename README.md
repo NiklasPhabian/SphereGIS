@@ -25,7 +25,7 @@ A more preferable approach determines spatial relations with a consistent method
 ## Goal:
 * Find is the subset of p that are within P.
 * Avoid 2D projection. All spatial relation tests are on sphere. 
-* Do the above in a performantly fashin allowing to subset trillions of points on consumer hardware (consciously vague specs).
+* Do the above in a performantly fashion allowing to subset trillions of points on consumer hardware (consciously vague specs).
 
 ## Challenge: 
 Both the points and the polygon are on the surfaces of a sphere (rather than in a cartesian space), which means that the nodes N are great circles rather than rhumb lines.
