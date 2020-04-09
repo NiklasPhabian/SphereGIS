@@ -7,9 +7,9 @@ Often times we are confronted with a large set of granules that intersect our re
 
 
 The geolocation information for the ungridded granules are typically given as WGS84 coordinates.
-At sufficiently low latitudes and small enough ROIs, we may choose to treat the coordinates as a 
+At sufficiently low latitudes and small enough ROIs, we may choose to treat the coordinates as an 
 [Equirectangular](https://en.wikipedia.org/wiki/Equirectangular_projection) grid. 
-To increase fidelity, we alternatively we may choose to project our data into a locally valid grid.
+To increase fidelity, we alternatively may choose to project our data into a locally valid grid.
 For both approaches, we then may use well understood 2D subsetting and indexing techniques (such as manual bounding boxes or [r-trees](https://en.wikipedia.org/wiki/R-tree)).
 
 However, if our ROI increases in size (or is closer to the poles for the Equirectangular grid), we may tap into situation where it matters if we perceive the ROI's edges as great circles or as Rhumb lines.
@@ -39,8 +39,10 @@ There seems to be an opportunity to quickly retrieve candidate points through in
 
 * A point that is within a polygon is also within the polygon's convex hull.
 * The edges of a spherical convex hull are all great circles. 
+* A great circles that passes through two points is the cross product of the two points.
 * A great circle can be seen as a plane dividing the sphere into two hemispheres.
 * A point is within the convex hull if it is in each of the hemispheres defined by each convex edge.
+* A pint is on the hemisphere described by a great circles if the dot product of the great circles and the point is positive.
 
 ### Brute Force
 A brute-force approach to retrieve the spherical convex hull is (as described on [stackoverflow](https://stackoverflow.com/a/60958182)):
