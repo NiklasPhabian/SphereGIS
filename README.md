@@ -24,11 +24,11 @@ A more preferable approach determines spatial relations with a consistent method
 
 ## Goal:
 * Find is the subset of p that are within P.
-* Avoid 2D projection. All spatial relation tests are on sphere. 
+* Avoid 2D projection. All spatial relation tests are on a sphere. 
 * Do the above in a performantly fashion allowing to subset trillions of points on consumer hardware (consciously vague specs).
 
 ## Challenge: 
-Both the points and the polygon are on the surfaces of a sphere (rather than in a cartesian space), which means that the nodes N are great circles rather than rhumb lines.
+Both the points and the polygon are on the surfaces of a sphere (rather than in a cartesian space), which means that the edges E are great circles rather than rhumb lines.
 
 Point-in-polygon tests on a sphere are similar to point-in-polygon tests in cartesian space ([Locating a point on a spherical surface relative to a spherical polygon of arbitrary shape](http://doi.org/10.1007/BF00894449)), but appear to be more computationally expensive. PostGIS implements spherical point-in-polygon tests through [geographies](https://postgis.net/workshops/postgis-intro/geography.html).
 To make it feasible to determine the subset of a very large set of p that is within P, we want to reduce the search space by cropping the set of points to candidates points prior to the spherical point-in-polygon tests.
