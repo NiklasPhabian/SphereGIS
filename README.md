@@ -12,10 +12,10 @@ At sufficiently low latitudes and small enough ROIs, we may choose to treat the 
 To increase fidelity, we alternatively we may choose to project our data into a locally valid grid.
 For both approaches, we then may use well understood 2D subsetting and indexing techniques (such as manual bounding boxes or [r-trees](https://en.wikipedia.org/wiki/R-tree)).
 
-However, if our ROI increases in size (or is closer to the poles for the Equirectangular grid), we may tap into situation where it matters if we perceive a our ROIs edges as great circles or as Rhumb lines.
+However, if our ROI increases in size (or is closer to the poles for the Equirectangular grid), we may tap into situation where it matters if we perceive the ROI's edges as great circles or as Rhumb lines.
 Further, if our ROI consists of a spatially spread set of polygons, the approach of projecting into locally valid grids becomes tedious. 
 
-A more preferable approach determines spatial relations in a consistent method without the need for map projections, whilst conceiving the boundaries of our ROI as great circles.
+A more preferable approach determines spatial relations with a consistent method without the need for map projections, whilst conceiving the boundaries of our ROI as great circles.
 
 ## Given are:
 
@@ -25,14 +25,13 @@ A more preferable approach determines spatial relations in a consistent method w
 ## Goal:
 * Find is the subset of p that are within P.
 * Avoid 2D projection. All spatial relation tests are on sphere. 
+* Do the above in a performantly fashin allowing to subset trillions of points on consumer hardware (consciously vague specs).
 
 ## Challenge: 
 Both the points and the polygon are on the surfaces of a sphere (rather than in a cartesian space), which means that the nodes N are great circles rather than rhumb lines.
 
 Point-in-polygon tests on a sphere are similar to point-in-polygon tests in cartesian space ([Locating a point on a spherical surface relative to a spherical polygon of arbitrary shape](http://doi.org/10.1007/BF00894449)), but appear to be more computationally expensive. PostGIS implements spherical point-in-polygon tests through [geographies](https://postgis.net/workshops/postgis-intro/geography.html).
 To make it feasible to determine the subset of a very large set of p that is within P, we want to reduce the search space by cropping the set of points to candidates points prior to the spherical point-in-polygon tests.
-
-
 
 
 # Approach:
@@ -90,6 +89,7 @@ There are a set of notebooks in the contrib folder that illustrate the usage.
 
     
 ## From github
+
     pip install git+git//github.com/NiklasPhabian/SphereGIS.github
 
 # Manual build
