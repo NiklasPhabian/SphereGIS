@@ -39,7 +39,7 @@ To make it feasible to determine the subset of a very large set of p that is wit
 There seems to be an opportunity to quickly retrieve candidate points through intersects test with the spherical convex hull of the polygon:
 
 
-![Spherical Polygon and its spherical convex hull](images/hull.png =10x)
+![Spherical Polygon and its spherical convex hull](images/hull.png)
 
 * Let all points be represented as [ECEF](https://en.wikipedia.org/wiki/ECEF) vectors.
 * A point that is within a polygon is also within the polygon's convex hull.
@@ -50,7 +50,7 @@ There seems to be an opportunity to quickly retrieve candidate points through in
 * A point is on the hemisphere defined by a great circles if the dot product of the great circle's normal vector and the point is positive.
 
 
-![Spherical Polygon and its spherical convex hull](images/convex_intersect.png =10x)
+![Spherical Polygon and its spherical convex hull](images/convex_intersect.png)
 
 The three green nodes span the green convex great circle edges. The magenta point is on each of the hemisphere denoted by the convex edges.
 
@@ -89,7 +89,7 @@ After finding the candidate points through intersection test with the convex hul
 
 As a consequence, we model spherical polygons as a set of edges, in which edge is represented as a triplet of great circles: One to represent the edges line and direction, one for the 'left' terminator and one for the 'right' terminator. Note that the order of the edges is irrelevant.
 
-![Spherical Polygon and its spherical convex hull](images/edge_intersect.png =10x)
+![Spherical Polygon and its spherical convex hull](images/edge_intersect.png)
 
 The above image presents the point in question as the magenta norm vector. The green great circle is an edge, with its two terminators (thin green vectors) and thick green normal vector. The ray is the red great circle which intersects the edge's great circle at the red vector. The intersection appears between the two terminators. Therefore we declare the ray to intersect the edge. Since the point is on the edge's hemisphere, we declare the ray to exit the polygon at the intersection.
 
@@ -168,7 +168,7 @@ SphereGIS has a low-level interface to interact directly with the c++ swig bindi
     convex_points.plot(ax=ax, color='green', markersize=10)
     polygon_points.plot(ax=ax, color='red', markersize=1)
 
-![Intersection of MOD09 granule with Santa Barbara County](images/polygon_intersect.png =10x)
+![Intersection of MOD09 granule with Santa Barbara County](images/polygon_intersect.png)
 
 ## Low Level Functions
 TBD
