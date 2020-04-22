@@ -118,55 +118,60 @@ SphereGIS has a low-level interface to interact directly with the c++ swig bindi
 ### Lookup of convex hull from ECEF vectors
 
 ## Lookup of convex hull from ECEF vectors
-    import sphereGIS 
-    import geopandas
-    
-    polygons = geopandas.read_file(geopandas.datasets.get_path('naturalearth_lowres'))#[4:5]
-    polygons = polygons[polygons.name =='Brazil'].iloc[0].geometry
-    
-    polygon = datastructure.Polygon()
-    polygon.from_polygon(geom)
-    polygon.get_convex()
-    
-    convex_edges = polygon.convex_edges.as_df()
-    
-    convex_edges.plot()
+
+```python
+import sphereGIS 
+import geopandas
+
+polygons = geopandas.read_file(geopandas.datasets.get_path('naturalearth_lowres'))#[4:5]
+polygons = polygons[polygons.name =='Brazil'].iloc[0].geometry
+
+polygon = datastructure.Polygon()
+polygon.from_polygon(geom)
+polygon.get_convex()
+
+convex_edges = polygon.convex_edges.as_df()
+
+convex_edges.plot()
+```
 
 
 ### Intersection of Granule with Polygon and Convex Hull
-    import sphereGIS 
-    import geopandas
-    import datastructure
+```python
+import sphereGIS 
+import geopandas
+import datastructure
 
-    
-    geom = geopandas.read_file('data/santa_barbara.gpkg').iloc[0].geometry[0]
-    
-    polygon = datastructure.Polygon()
-    polygon.from_polygon(geom)
-    polygon.get_convex()
-    
-    
-    fname = 'data/MOD09.A2020032.1940.006.2020034015024.hdf'
-    mod09 = datastructure.Mod09(fname)
-        
-    # Note: those are the indices
-    inside_convex = mod09.intersects_convex(polygon.convex_edges)
-    inside_polygon = mod09.inside_polygon(polygon)
-    
-    polygon_points = geopandas.points_from_xy(mod09.lon[inside_convex], mod09.lat[inside_convex])
-    polygon_points = geopandas.GeoDataFrame({'geom': geopandas.points_from_xy(lon, lat)}).set_geometry('geom')
-    
-    convex_points = geopandas.points_from_xy(mod09.lon[inside_polygon], mod09.lat[inside_polygon])
-    convex_points = geopandas.GeoDataFrame({'geom': geopandas.points_from_xy(lon, lat)}).set_geometry('geom')
-    
-    fig, ax = plt.subplots(dpi=200)
-    ax.grid(True)
 
-    polygon.convex_edges.as_df().plot(ax=ax, color='green')
+geom = geopandas.read_file('data/santa_barbara.gpkg').iloc[0].geometry[0]
 
-    polygons.plot(ax=ax, color='white', edgecolor='red', linewidth=4)
-    convex_points.plot(ax=ax, color='green', markersize=10)
-    polygon_points.plot(ax=ax, color='red', markersize=1)
+polygon = datastructure.Polygon()
+polygon.from_polygon(geom)
+polygon.get_convex()
+
+
+fname = 'data/MOD09.A2020032.1940.006.2020034015024.hdf'
+mod09 = datastructure.Mod09(fname)
+    
+# Note: those are the indices
+inside_convex = mod09.intersects_convex(polygon.convex_edges)
+inside_polygon = mod09.inside_polygon(polygon)
+
+polygon_points = geopandas.points_from_xy(mod09.lon[inside_convex], mod09.lat[inside_convex])
+polygon_points = geopandas.GeoDataFrame({'geom': geopandas.points_from_xy(lon, lat)}).set_geometry('geom')
+
+convex_points = geopandas.points_from_xy(mod09.lon[inside_polygon], mod09.lat[inside_polygon])
+convex_points = geopandas.GeoDataFrame({'geom': geopandas.points_from_xy(lon, lat)}).set_geometry('geom')
+
+fig, ax = plt.subplots(dpi=200)
+ax.grid(True)
+
+polygon.convex_edges.as_df().plot(ax=ax, color='green')
+
+polygons.plot(ax=ax, color='white', edgecolor='red', linewidth=4)
+convex_points.plot(ax=ax, color='green', markersize=10)
+polygon_points.plot(ax=ax, color='red', markersize=1)
+```
 
 ![Intersection of MOD09 granule with Santa Barbara County](images/polygon_intersect.png)
 
