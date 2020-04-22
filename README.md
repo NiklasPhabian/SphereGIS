@@ -112,8 +112,6 @@ SphereGIS has a low-level interface to interact directly with the c++ swig bindi
 
 ### Lookup of convex hull from ECEF vectors
 
-## Lookup of convex hull from ECEF vectors
-
 ```python
 import sphereGIS 
 import geopandas
