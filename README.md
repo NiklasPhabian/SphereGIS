@@ -137,13 +137,11 @@ import sphereGIS
 import geopandas
 import datastructure
 
-
 geom = geopandas.read_file('data/santa_barbara.gpkg').iloc[0].geometry[0]
 
 polygon = datastructure.Polygon()
 polygon.from_polygon(geom)
 polygon.get_convex()
-
 
 fname = 'data/MOD09.A2020032.1940.006.2020034015024.hdf'
 mod09 = datastructure.Mod09(fname)
@@ -153,10 +151,10 @@ inside_convex = mod09.intersects_convex(polygon.convex_edges)
 inside_polygon = mod09.inside_polygon(polygon)
 
 polygon_points = geopandas.points_from_xy(mod09.lon[inside_convex], mod09.lat[inside_convex])
-polygon_points = geopandas.GeoDataFrame({'geom': geopandas.points_from_xy(lon, lat)}).set_geometry('geom')
+polygon_points = geopandas.GeoDataFrame({'geom': polygon_points).set_geometry('geom')
 
 convex_points = geopandas.points_from_xy(mod09.lon[inside_polygon], mod09.lat[inside_polygon])
-convex_points = geopandas.GeoDataFrame({'geom': geopandas.points_from_xy(lon, lat)}).set_geometry('geom')
+convex_points = geopandas.GeoDataFrame({'geom': convex_points}).set_geometry('geom')
 
 fig, ax = plt.subplots(dpi=200)
 ax.grid(True)
