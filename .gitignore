@@ -4,6 +4,8 @@
 *.out
 *.so
 *.hdf
+*.Rhistory
+*.kate-swp
 build/
 sphereGIS.py
 sphereGIS_wrap.cpp

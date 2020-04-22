@@ -36,12 +36,20 @@ To make it feasible to determine the subset of a very large set of p that is wit
 
 
 # Approach:
+
+## Convex Hull
 There seems to be an opportunity to quickly retrieve candidate points through intersects test with the spherical convex hull of the polygon:
+
+![Spherical Polygon and its spherical convex hull](images/hull.png =10x)
 
 * A point that is within a polygon is also within the polygon's convex hull.
 * The edges of a spherical convex hull are all great circles. 
 * A great circle can be seen as a plane dividing the sphere into two hemispheres.
 * A point is within the convex hull if it is in each of the hemispheres defined by each convex edge.
+
+![Spherical Polygon and its spherical convex hull](images/convex_intersect.png =10x)
+
+The three green nodes span the green convex great circle edges. The magenta point is on each of the hemisphere denoted by the convex edges.
 
 ### Brute Force
 A brute-force approach to retrieve the spherical convex hull is (as described on [stackoverflow](https://stackoverflow.com/a/60958182)):
@@ -50,37 +58,109 @@ A brute-force approach to retrieve the spherical convex hull is (as described on
 * Draw edges between each node. I.e. create a great circle that crosses each pair of nodes. Note: Draw them in both directions
 * For each of the just created great circles, verify if all nodes are on the hemisphere defined by the great circle. If yes, this great circle is an edge/constraint of the convex hull. If no, discard the great circle.
 
-### Adapted Graham Scan 
-We here implement an iterative approach through a spherical adaptation of the [Graham Scan](https://en.wikipedia.org/wiki/Graham_scan):
+### Scan 
+We here implement an iterative approach through inspired by the [Graham Scan](https://en.wikipedia.org/wiki/Graham_scan):
 
 1. We define the edges of the convex hull to have a direction; i.e. going FROM a node TO a node. 
-2. We find a first pair of nodes (a FROM and a TO node) that are an edge of the convex hull. Since we know that at least one of the polygon's edges is also an edge of the convex, we can look for the first edge of the convex in the edges of the polygon.
+2. We find a first pair of nodes (a FROM and a TO node) that are an edge of the convex hull. Since we might assume that at least one of the polygon's edges is also an edge of the convex, we can start looking for the first edge of the convex in the edges of the polygon.
 3. We declare this first TO node as the next FROM node.
 4. For this FROM node, we find its TO node. We do this by scanning all of the polygon nodes (except for the ones that already have been declared a TO node; but this is merely an optimization). We can discard a candidate convex edge as soon as we find a single point that is outside of its hemisphere.
 5. We repeat step 3 and 4 until the TO node equals our very first FROM node, i.e. the convex hull is closed.
 
-### Further improvements through sorting:
-Conceptually, a FROM node's TO node is probably geographically close, which probably means also close in index space. The initial sorting of the nodes therefore appears relevant.
+### Improvements through sorting:
+Conceptually, a FROM node's TO node is probably geographically close, which probably means also close in index space. The initial sorting of the nodes therefore appears relevant. As of now, no we did not attempt an optimal sorting. However, we search the TO node by starting with the immediate neighbors left and right (in index space) of the FROM node. We then iteratively step further away.
+
+We also observed that a random shuffling of the node order prior to the scan appears to provide significant performance improvements. 
+
+
+## Spherical Point in Polygon
+After finding the candidate points through intersection test with the convex hull of the spherical polygon, we find the points that intersect the polygon with the following assumptions:
+
+* The edges of the polygon are great circle segments rather than great circles. I.e. they have a starting and an ending terminator. 
+* Similarly to the 2D point in polygon test, we may use the intersections of a ray cast from the point in question to a random point on the sphere (e.g. the north pole, or its antipode). For our spherical case, those rays are in fact great circles.
+* We determine a ray to intersect an edge if the intersection of the ray with the edge's great circle is between the edge's terminator. The terminators are represented as great circles perpendicular to the according node and the edge.
+* Since the great circle rays wrap around the sphere, they will intersect the polygon edges either not at all or an even number of times. We therefore cannot merely count the number of intersections but rather distinguish how may times a ray *enters* the polygon. Note that the ray does not have a direction. Determining if a ray enters the polygon is therefore determined by determining on which side of the edge's great circle the point in question is. I.e. if the point is on the side of the edge hemisphere, the ray exits the polygon when it crosses the edge. If a point is inside the polygon, the ray will exit the polygon an even number of times.
+
+As a consequence, we model spherical polygons as a set of edges, in which edge is represented as a triplet of great circles: One to represent the edges line and direction, one for the 'left' terminator and one for the 'right' terminator. Note that the order of the edges is irrelevant.
+
+![Spherical Polygon and its spherical convex hull](images/edge_intersect.png =10x)
+
+The above image presents the point in question as the magenta norm vector. The green great circle is an edge, with its two terminators (thin green vectors) and thick green normal vector. The ray is the red great circle which intersects the edge's great circle at the red vector. The intersection appears between the two terminators. Therefore we declare the ray to intersect the edge. Since the point is on the edge's hemisphere, we declare the ray to exit the polygon at the intersection.
+
+## Datastructure
+### Polygons, edges, nodes, convex edges,
+
+### Granules
+MOD09
+
+
+## Multipolygons
+TBD
+
 
 # Usage:
-There are a set of notebooks in the contrib folder that illustrate the usage.
+There are a set of notebooks in the contrib/ folder that illustrate the usage.
 
+SphereGIS has a low-level interface to interact directly with the c++ swig bindings and a high level abstraction to manage conversions and data structures. The high level functions allow the preservation of the spherical polygons and thus can serve to avoid repetitive bootstrapping / conversion of the spherical polygons from its lat/lon node representation. This is particularly interesting if a large set of granules are to be intersected / joined with a steady set of polygons.
 
-## Lookup of convex hull from ECEF vectors
+## High level functions
+
+### Lookup of convex hull from ECEF vectors
+
     import sphereGIS 
     import geopandas
     
-    polygon = geopandas.read_file('data/santa_barbara.gpkg')
+    polygons = geopandas.read_file(geopandas.datasets.get_path('naturalearth_lowres'))#[4:5]
+    polygons = polygons[polygons.name =='Brazil'].iloc[0].geometry
     
-    lon = numpy.array(polygons.iloc[0].geometry.exterior.xy[0])
-    lat = numpy.array(polygons.iloc[0].geometry.exterior.xy[1])
-
-    x = numpy.cos(lon/360*math.pi*2) * numpy.cos(lat/360*math.pi*2)
-    y = numpy.sin(lon/360*math.pi*2) * numpy.cos(lat/360*math.pi*2)
-    z = numpy.sin(lat/360*math.pi*2)
+    polygon = datastructure.Polygon()
+    polygon.from_polygon(geom)
+    polygon.get_convex()
     
-    convex_node_indices = sphereGIS.xyz2convex(x,y,z)
+    convex_edges = polygon.convex_edges.as_df()
+    
+    convex_edges.plot()
 
+
+### Intersection of Granule with Polygon and Convex Hull
+    import sphereGIS 
+    import geopandas
+    import datastructure
+
+    
+    geom = geopandas.read_file('data/santa_barbara.gpkg').iloc[0].geometry[0]
+    
+    polygon = datastructure.Polygon()
+    polygon.from_polygon(geom)
+    polygon.get_convex()
+    
+    
+    fname = 'data/MOD09.A2020032.1940.006.2020034015024.hdf'
+    mod09 = datastructure.Mod09(fname)
+        
+    # Note: those are the indices
+    inside_convex = mod09.intersects_convex(polygon.convex_edges)
+    inside_polygon = mod09.inside_polygon(polygon)
+    
+    polygon_points = geopandas.points_from_xy(mod09.lon[inside_convex], mod09.lat[inside_convex])
+    polygon_points = geopandas.GeoDataFrame({'geom': geopandas.points_from_xy(lon, lat)}).set_geometry('geom')
+    
+    convex_points = geopandas.points_from_xy(mod09.lon[inside_polygon], mod09.lat[inside_polygon])
+    convex_points = geopandas.GeoDataFrame({'geom': geopandas.points_from_xy(lon, lat)}).set_geometry('geom')
+    
+    fig, ax = plt.subplots(dpi=200)
+    ax.grid(True)
+
+    polygon.convex_edges.as_df().plot(ax=ax, color='green')
+
+    polygons.plot(ax=ax, color='white', edgecolor='red', linewidth=4)
+    convex_points.plot(ax=ax, color='green', markersize=10)
+    polygon_points.plot(ax=ax, color='red', markersize=1)
+
+![Intersection of MOD09 granule with Santa Barbara County](images/polygon_intersect.png =10x)
+
+## Low Level Functions
+TBD
 
 # Installing:
 
