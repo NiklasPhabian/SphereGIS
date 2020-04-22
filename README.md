@@ -22,12 +22,12 @@ A more preferable approach determines spatial relations with a consistent method
 * A spherical polygon P defined by its nodes N and its edges E.
 
 ## Goal:
-* Find is the subset of p that are within P.
+* Find the subset of p that are within P.
 * Avoid 2D projection. All spatial relation tests are on a sphere. 
 * Do the above in a performantly fashion allowing to subset trillions of points on consumer hardware (consciously vague specs).
 
 ## Challenge: 
-Both the points and the polygon are on the surfaces of a sphere (rather than in 2D cartesian space), which means that the edges E are great circles rather than rhumb lines.
+Both the points and the polygon are on the surfaces of a sphere (rather than in 2D cartesian space), which means that the edges E are great circle segments rather than rhumb line segments.
 
 Point-in-polygon tests on a sphere are similar to point-in-polygon tests in cartesian space ([Locating a point on a spherical surface relative to a spherical polygon of arbitrary shape](http://doi.org/10.1007/BF00894449)), but appear to be more computationally expensive. PostGIS implements spherical point-in-polygon tests through [geographies](https://postgis.net/workshops/postgis-intro/geography.html).
 To make it feasible to determine the subset of a very large set of p that is within P, we want to reduce the search space by cropping the set of points to candidates points prior to the spherical point-in-polygon tests.
@@ -37,7 +37,6 @@ To make it feasible to determine the subset of a very large set of p that is wit
 
 ## Convex Hull
 There seems to be an opportunity to quickly retrieve candidate points through intersects test with the spherical convex hull of the polygon:
-
 
 ![Spherical Polygon and its spherical convex hull](images/hull.png)
 
@@ -65,7 +64,7 @@ A greedy approach to retrieve the spherical convex hull is (as described on [sta
 This approach works well for sufficiently small polygons (< 1000 nodes) and is implemented using numpy in [contrib/convexHullNP.ipynb](https://github.com/NiklasPhabian/SphereGIS/blob/master/contrib/convexHullNP.ipynb)
 
 ### Scan 
-We here implement an iterative approach through inspired by the [Graham Scan](https://en.wikipedia.org/wiki/Graham_scan):
+We here implement an iterative approach inspired by the [Graham Scan](https://en.wikipedia.org/wiki/Graham_scan):
 
 1. We define the edges of the convex hull to have a direction; i.e. going FROM a node TO a node. 
 2. We find a first pair of nodes (a FROM and a TO node) that are an edge of the convex hull. Since we might assume that at least one of the polygon's edges is also an edge of the convex, we can start looking for the first edge of the convex in the edges of the polygon.
@@ -76,18 +75,18 @@ We here implement an iterative approach through inspired by the [Graham Scan](ht
 ### Improvements through sorting:
 Conceptually, a FROM node's TO node is probably geographically close, which probably means also close in index space. The initial sorting of the nodes therefore appears relevant. As of now, no we did not attempt an optimal sorting. However, we search the TO node by starting with the immediate neighbors left and right (in index space) of the FROM node. We then iteratively step further away.
 
-We also observed that a random shuffling of the node order prior to the scan appears to provide significant performance improvements. 
+Alternatively, we observed that a random shuffling of the node order prior to the scan appears to provide significant performance improvements. 
 
 
 ## Spherical Point in Polygon
 After finding the candidate points through intersection test with the convex hull of the spherical polygon, we find the points that intersect the polygon with the following assumptions:
 
 * The edges of the polygon are great circle segments rather than great circles. I.e. they have a starting and an ending terminator. 
-* Similarly to the 2D point in polygon test, we may use the intersections of a ray cast from the point in question to a random point on the sphere (e.g. the north pole, or its antipode). For our spherical case, those rays are in fact great circles.
-* We determine a ray to intersect an edge if the intersection of the ray with the edge's great circle is between the edge's terminator. The terminators are represented as great circles perpendicular to the according node and the edge.
+* Similarly to the 2D point in polygon test, we may use the intersections of a ray cast from the point in question to a random point on the sphere (e.g. the north pole, or the point's antipode). For our spherical case, those rays are in fact great circles.
+* We determine a ray to intersect an edge if the intersection of the ray with the edge's great circle is between the edge's terminators. The terminators are represented as great circles perpendicular to the according node and the edge.
 * Since the great circle rays wrap around the sphere, they will intersect the polygon edges either not at all or an even number of times. We therefore cannot merely count the number of intersections but rather distinguish how may times a ray *enters* the polygon. Note that the ray does not have a direction. Determining if a ray enters the polygon is therefore determined by determining on which side of the edge's great circle the point in question is. I.e. if the point is on the side of the edge hemisphere, the ray exits the polygon when it crosses the edge. If a point is inside the polygon, the ray will exit the polygon an even number of times.
 
-As a consequence, we model spherical polygons as a set of edges, in which edge is represented as a triplet of great circles: One to represent the edges line and direction, one for the 'left' terminator and one for the 'right' terminator. Note that the order of the edges is irrelevant.
+As a consequence, we model spherical polygons as a set of edges, in which edges are represented as triplets of great circles: One to represent the edges line and direction, one for the 'left' terminator and one for the 'right' terminator. Note that the order of the edges is irrelevant.
 
 ![Spherical Polygon and its spherical convex hull](images/edge_intersect.png)
 
@@ -102,10 +101,6 @@ MOD09
 
 ## Multipolygons
 TBD
-
-### Further improvements through sorting:
-Conceptually, a FROM node's TO node is probably geographically close, which probably means also close in index space. The initial sorting of the nodes therefore appears relevant. 
-So far, we saw that the sorting of the nodes results in calculation time difference of factor 100+. However as of 2020-04-09 we do not understand the mechanism nor the optimal; or rather heuristic sorting approach.
 
 # Usage:
 There are a set of notebooks in the contrib/ folder that illustrate the usage.
