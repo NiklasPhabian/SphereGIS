@@ -87,8 +87,7 @@ After finding the candidate points through intersection test with the convex hul
 * The edges of the polygon are great circle segments rather than great circles. I.e. they have a starting and an ending terminator. 
 * Similarly to the 2D point in polygon test, we may use the intersections of a ray cast from the point in question to a random point on the sphere (e.g. the north pole, or the point's antipode). For our spherical case, those rays are in fact great circles.
 * We determine a ray to intersect an edge if the intersection of the ray with the edge's great circle is between the edge's terminators. The terminators are represented as great circles perpendicular to the according node and the edge.
-* Since the great circle rays wrap around the sphere, they will intersect the polygon edges either not at all or an even number of times. We therefore cannot merely count the number of intersections but rather distinguish how may times a ray *enters* the polygon. Note that the ray does not have a direction. Determining if a ray enters the polygon is therefore determined by determining on which side of the edge's great circle the point in question is. I.e. if the point is on the side of the edge hemisphere, the ray exits the polygon when it crosses the edge. If a point is inside the polygon, the ray will exit the polygon more often than it enters it.
-
+* Since the great circle rays wrap around the sphere, they will intersect the polygon edges either not at all or an even number of times. We therefore cannot merely count the number of intersections but rather have to distinguish how may times a ray *enters* the polygon. Note that the ray does not have a direction. Determining if a ray enters the polygon is therefore determined by determining on which side of the edge's great circle the point in question is. I.e. if the point is on the side of the edge's hemisphere, the ray exits the polygon when it crosses the edge. If a point is inside the polygon, the ray will exit the polygon more often than it enters it.
 
 
 ![Ray entering (in) and exiting (out) a spherical polygon](images/ray.png)
@@ -122,7 +121,6 @@ SphereGIS has a low-level interface to interact directly with the c++ swig bindi
 
 ### Lookup of convex hull from ECEF vectors
 
-
 ```python
 import sphereGIS 
 import geopandas
@@ -146,13 +144,11 @@ import sphereGIS
 import geopandas
 import datastructure
 
-
 geom = geopandas.read_file('data/santa_barbara.gpkg').iloc[0].geometry[0]
 
 polygon = datastructure.Polygon()
 polygon.from_polygon(geom)
 polygon.get_convex()
-
 
 fname = 'data/MOD09.A2020032.1940.006.2020034015024.hdf'
 mod09 = datastructure.Mod09(fname)
@@ -162,10 +158,10 @@ inside_convex = mod09.intersects_convex(polygon.convex_edges)
 inside_polygon = mod09.inside_polygon(polygon)
 
 polygon_points = geopandas.points_from_xy(mod09.lon[inside_convex], mod09.lat[inside_convex])
-polygon_points = geopandas.GeoDataFrame({'geom': geopandas.points_from_xy(lon, lat)}).set_geometry('geom')
+polygon_points = geopandas.GeoDataFrame({'geom': polygon_points).set_geometry('geom')
 
 convex_points = geopandas.points_from_xy(mod09.lon[inside_polygon], mod09.lat[inside_polygon])
-convex_points = geopandas.GeoDataFrame({'geom': geopandas.points_from_xy(lon, lat)}).set_geometry('geom')
+convex_points = geopandas.GeoDataFrame({'geom': convex_points}).set_geometry('geom')
 
 fig, ax = plt.subplots(dpi=200)
 ax.grid(True)
