@@ -51,7 +51,7 @@ There seems to be an opportunity to quickly retrieve candidate points through in
 
 ![Spherical Polygon and its spherical convex hull](images/convex_intersect.png)
 
-The three green nodes span the green convex great circle edges. The magenta point is on each of the hemisphere denoted by the convex edges.
+The blue green nodes span the green convex great circle edges. The magenta point is on each of the hemisphere denoted by the convex edges.
 
 
 ### Brute Force / Greedy approach
@@ -72,13 +72,10 @@ We here implement an iterative approach inspired by the [Graham Scan](https://en
 4. For this FROM node, we find its TO node. We do this by scanning all of the polygon nodes (except for the ones that already have been declared a TO node; but this is merely an optimization). We can discard a candidate convex edge as soon as we find a single point that is outside of its hemisphere.
 5. We repeat step 3 and 4 until the TO node equals our very first FROM node, i.e. the convex hull is closed.
 
-### Improvements through sorting:
+### Improvements through order:
 Conceptually, a FROM node's TO node is probably geographically close, which probably means also close in index space. The initial sorting of the nodes therefore appears relevant. As of now, no we did not attempt an optimal sorting. However, we search the TO node by starting with the immediate neighbors left and right (in index space) of the FROM node. We then iteratively step further away.
 
-Conceptually, we further know that certain extreme points will be disqualifying a large number of items. We therefore keep a cache of nodes that caused an edge to be discarded as a convex edge. We then first test the edges on these extreme points.
-
-
-We observed that a random shuffling of the node order prior to the scan appears to provide significant performance improvements. 
+Conceptually, we further know that certain extreme nodes will be disqualifying a large number of edges. We therefore keep a cache of nodes that caused an edge to be discarded as a convex edge. We then first test the candidate convex edges on these extreme points.
 
 
 ## Spherical Point-in-Polygon
@@ -88,15 +85,16 @@ After finding the candidate points through intersection test with the convex hul
 * Similarly to the 2D point in polygon test, we may use the intersections of a ray cast from the point in question to a random point on the sphere (e.g. the north pole, or the point's antipode). For our spherical case, those rays are in fact great circles.
 * We determine a ray to intersect an edge if the intersection of the ray with the edge's great circle is between the edge's terminators. The terminators are represented as great circles perpendicular to the according node and the edge.
 * Since the great circle rays wrap around the sphere, they will intersect the polygon edges either not at all or an even number of times. We therefore cannot merely count the number of intersections but rather have to distinguish how may times a ray *enters* the polygon. Note that the ray does not have a direction. Determining if a ray enters the polygon is therefore determined by determining on which side of the edge's great circle the point in question is. I.e. if the point is on the side of the edge's hemisphere, the ray exits the polygon when it crosses the edge. If a point is inside the polygon, the ray will exit the polygon more often than it enters it.
+* Note that this approach works without modification on Multipolygons as well.
 
 
 ![Ray entering (in) and exiting (out) a spherical polygon](images/ray.png)
 
 We model spherical polygons as a set of edges, in which edges are represented as triplets of great circles: One to represent the edges line and direction, one for the 'left' terminator and one for the 'right' terminator. Note that the order of the edges is irrelevant.
 
-![Spherical Polygon and its spherical convex hull](images/edge_intersect.png)
+The image below presents the point in question as the magenta norm vector. The green great circle is an edge, with its two terminators (thin green vectors) and thick green normal vector. The ray is the red great circle which intersects the edge's great circle at the red vector. The intersection appears between the two terminators. Therefore we declare the ray to intersect the edge. Since the point is on the edge's hemisphere, we declare the ray to exit the polygon at the intersection.
 
-The above image presents the point in question as the magenta norm vector. The green great circle is an edge, with its two terminators (thin green vectors) and thick green normal vector. The ray is the red great circle which intersects the edge's great circle at the red vector. The intersection appears between the two terminators. Therefore we declare the ray to intersect the edge. Since the point is on the edge's hemisphere, we declare the ray to exit the polygon at the intersection.
+![Spherical Polygon and its spherical convex hull](images/edge_intersect.png)
 
 ## Datastructures
 
