@@ -1,7 +1,7 @@
 # SphereGIS:
 
 When working with ungridded remote sensing data, such as MOD09 or VNP03, extracting the information we are interested in from a set of granules is a challenging hurdle.
-Often times we are confronted with a large set of granules that intersect our region of interest, but also contain areas we are not interested in. We therefore sneed a performant method to subset the granules to our region of interest (ROI). 
+Often times we are confronted with a large set of granules that intersect our region of interest, but also contain areas we are not interested in. We therefore need a performant method to subset the granules to our region of interest (ROI). 
 
 ![Example of ROI and granule overlap](images/roi.png)
 
