@@ -3,7 +3,7 @@
 #include <string>
 #include <fstream>
 #include <math.h>       
-
+#include <set>
 
 struct ECEF { 
     double x, y, z;
@@ -54,18 +54,47 @@ bool equals(ECEF & v1, ECEF & v2) {
 }
 
 
-bool test_edge(size_t from_index, size_t to_index, ECEFVector &nodes) {
+bool test_edge2(size_t from_index, size_t to_index, ECEFVector &nodes) {
     if (equals(nodes[from_index], nodes[to_index])) return false;        
     ECEF great_circle = cross(nodes[from_index], nodes[to_index]);
-    for (size_t node_index = 0; node_index < nodes.size(); node_index++){        
+    for (size_t node_index = 0; node_index < nodes.size(); node_index++){   
         if (node_index == from_index) continue;
         if (node_index == to_index) continue;
         if (equals(nodes[node_index], nodes[to_index])) continue;
         if (equals(nodes[node_index], nodes[from_index])) continue;
         if (dot(great_circle, nodes[node_index]) < 0) return false;
-    }
+    }   
     return true;
 }
+
+std::set<size_t> offenders;
+
+bool test_edge(size_t from_index, size_t to_index, ECEFVector &nodes) {
+    if (equals(nodes[from_index], nodes[to_index])) return false;        
+    ECEF great_circle = cross(nodes[from_index], nodes[to_index]);
+    for (auto const& offender: offenders) {
+        if (offender == from_index) continue;
+        if (offender == to_index) continue;
+        if (equals(nodes[offender], nodes[to_index])) continue;
+        if (equals(nodes[offender], nodes[from_index])) continue;
+        if (dot(great_circle, nodes[offender]) < 0) return false;
+    }
+    
+    size_t node_index;
+    for (size_t i = 0; i< nodes.size(); i++){    // This is where it is at    
+        node_index = i;// + 0) % n_nodes;
+        if (node_index == from_index) continue;
+        if (node_index == to_index) continue;
+        if (equals(nodes[node_index], nodes[to_index])) continue;
+        if (equals(nodes[node_index], nodes[from_index])) continue;
+        if (dot(great_circle, nodes[node_index]) < 0) {
+            offenders.insert(node_index);
+            return false;
+        }
+    }   
+    return true;
+}
+
 
 
 int find_to_index2(size_t from_index, ECEFVector &nodes) {
@@ -84,6 +113,7 @@ int find_to_index(size_t from_index, ECEFVector &nodes) {
     int sign = 1;
     sign *= -1;
     int n_nodes =  nodes.size();
+    //std::cout << to_index << std::endl;
     for (int i = 1; i < n_nodes; i++) {      
         // We move from the from_index left and right in index space
         sign *= -1;        
@@ -91,6 +121,11 @@ int find_to_index(size_t from_index, ECEFVector &nodes) {
         if (to_index < 0) {
             to_index = n_nodes + to_index;            
         }
+        if (from_index == 9936){ //18468
+            //std::cout << to_index << std::endl;
+        }
+
+
         if (test_edge(from_index, to_index, nodes)) { 
             return to_index;
         }
@@ -131,14 +166,10 @@ ECEFVector make_ecefs(double* lat, double* lon, int len) {
 
 
 EdgeVector find_convex_hull(ECEFVector &nodes) {
-    //std::cout << find_to_index(1, nodes) << std::endl;
     EdgeVector convex_edges;
     int first_from_index = find_first_from_index(nodes);
     int from_index = first_from_index;
     int to_index = find_to_index(from_index, nodes);
-    
-    //std::cout << "To " << nodes.size()<< std::endl;
-
     while (to_index != first_from_index) {
         to_index = find_to_index(from_index, nodes);
         convex_edges.push_back(Edge(from_index, to_index));
@@ -246,10 +277,12 @@ void _intersects(double* lon_points, int len_lon_points,
 
 int main(int argc, char *argv[]) {
     //std::string file_name = "data/germany.csv";
-    std::string file_name = "data/trinidad_sorted.csv";
+    std::string file_name = "data/brazil.csv";
     ECEFVector nodes = read_ecef_csv(file_name);
     EdgeVector convex_edges = find_convex_hull(nodes);    
     for(auto const& convex_edge: convex_edges) {
         std::cout << convex_edge.from_node << " " << convex_edge.to_node << std::endl;
     }
+    
+        
 }
