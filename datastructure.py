@@ -26,9 +26,13 @@ class SphereGeoDataFrame(geopandas.GeoDataFrame):
         
     def bootstrap(self):
         spherical_polygons = []
+        convex_hulls = []
         for index, row in self.iterrows():
-            spherical_polygons.append(SphericalPolygon(row.geometry))
+            spherical_polygon = SphericalPolygon(row.geometry)
+            spherical_polygons.append(spherical_polygon)
+            convex_hulls.append(spherical_polygon.convex_nodes.as_polygon())
         self['sphere_geom'] = spherical_polygons
+        self['convex_hull'] = convex_hulls
     
 
 class SphericalPolygon:
@@ -40,6 +44,7 @@ class SphericalPolygon:
         self.convex_edges = Edges()
         if geom:
             self.from_geom(geom)
+            #self.get_convex()
     
     def from_geom(self, geom):
         geom_type = geom.type
@@ -70,6 +75,11 @@ class SphericalPolygon:
         convex_lat = self.nodes.lat[convex_node_indices]
         self.convex_nodes.from_lonlat(convex_lon, convex_lat)
         self.convex_edges.from_lonlat(convex_lon, convex_lat)
+        
+    def get_convex_indices(self):
+        x, y, z = self.nodes.as_ecef().transpose()
+        convex_node_indices = sphereGIS.xyz2convex(x,y,z)
+        return convex_node_indices 
         
         
 class Edges:
@@ -122,6 +132,15 @@ class Nodes:
         x, y, z = self.as_ecef().transpose()
         df = pandas.DataFrame({'x':x, 'y': y, 'z': z})
         df.to_csv(name, index=None, header=None)
+        
+    def as_polygon(self):
+        return shapely.geometry.Polygon(zip(self.lon, self.lat))
+    
+    def as_polygon_df(self):
+        geom = self.as_polygon()        
+        gdf = geopandas.GeoDataFrame({'geom': [geom]})
+        gdf = gdf.set_geometry('geom')
+        return gdf
         
     def as_point_df(self):
         points = []
