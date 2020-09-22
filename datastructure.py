@@ -44,7 +44,6 @@ class SphericalPolygon:
         self.convex_edges = Edges()
         if geom:
             self.from_geom(geom)
-            #self.get_convex()
     
     def from_geom(self, geom):
         geom_type = geom.type
@@ -68,9 +67,8 @@ class SphericalPolygon:
             new_edges.from_lonlat(lon, lat)
             self.edges.add(new_edges)
         
-    def get_convex(self):
-        x, y, z = self.nodes.as_ecef().transpose()
-        convex_node_indices = sphereGIS.xyz2convex(x,y,z)
+    def get_convex(self):        
+        convex_node_indices = sphereGIS.lonlat2convex(self.nodes.lon, self.nodes.lat)
         convex_lon = self.nodes.lon[convex_node_indices]
         convex_lat = self.nodes.lat[convex_node_indices]
         self.convex_nodes.from_lonlat(convex_lon, convex_lat)
@@ -78,16 +76,16 @@ class SphericalPolygon:
         
     def get_convex_indices(self):
         x, y, z = self.nodes.as_ecef().transpose()
-        convex_node_indices = sphereGIS.xyz2convex(x,y,z)
+        convex_node_indices = sphereGIS.lonlat2convex(self.nodes.lon, self.nodes.lat)
         return convex_node_indices 
         
         
 class Edges:
     
     def __init__(self):
-        self.gcs = numpy.empty([0,3], dtype=numpy.float)
-        self.left_gcs = numpy.empty([0,3], dtype=numpy.float)
-        self.right_gcs = numpy.empty([0,3], dtype=numpy.float)
+        self.gcs = numpy.empty([0, 3], dtype=numpy.float)
+        self.left_gcs = numpy.empty([0, 3], dtype=numpy.float)
+        self.right_gcs = numpy.empty([0, 3], dtype=numpy.float)
         
     def from_lonlat(self, lon, lat):
         from_nodes = to_ecef(lon, lat)
@@ -100,7 +98,19 @@ class Edges:
         self.gcs = numpy.concatenate((self.gcs, other.gcs))
         self.left_gcs = numpy.concatenate((self.left_gcs, other.left_gcs))
         self.right_gcs = numpy.concatenate((self.right_gcs, other.right_gcs))
-
+        
+    def __iter__(self):
+        return EdgeIterator(self)
+    
+class EdgeIterator:
+    
+    def __init__(self, edges):
+        self._edges = edges
+        self._index = 0
+        
+    def __next__(self):
+        pass
+    
         
 class Nodes:
     

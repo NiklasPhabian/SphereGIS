@@ -19,6 +19,9 @@
     (double* x, int len_x),
     (double* y, int len_y),
     (double* z, int len_z),
+    (double* gc_x, int len_x),
+    (double* gc_y, int len_y),
+    (double* gc_z, int len_z),
     (double* lon, int len_lon),
     (double* lat, int len_lat),
     (double* lon_points, int len_lon_points),
@@ -38,11 +41,6 @@
 %pythoncode %{
 import numpy
 
-def xyz2convex(x, y, z):
-    out = numpy.full(x.shape, [-1], dtype=numpy.int32)
-    _find_convex_hull_xyz(x, y, z, out)
-    out = out[out!=-1]
-    return out
     
 def lonlat2convex(lon_nodes, lat_nodes):
     out = numpy.full(lon_nodes.shape, [-1], dtype=numpy.int32)
@@ -56,9 +54,9 @@ def intersects(lon_points, lat_points, lon_nodes, lat_nodes):
     out = numpy.array(out, dtype=numpy.bool)
     return out
     
-def intersects_convex(lat_points, lon_points, lon_nodes, lat_nodes):
-    out = numpy.full(lat.shape, [1], dtype=numpy.int32)
-    _intersects_convex(lat, lon, x, y, z, out)
+def intersects_convex_gc(lon_points, lat_points, gc_x, gc_y, gc_z):
+    out = numpy.full(lon_points.shape, [1], dtype=numpy.int32)
+    _intersects_convex(lon_points, lat_points, gc_x, gc_y, gc_z, out)
     out = numpy.array(out, dtype=numpy.bool)
     return out
 

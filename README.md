@@ -69,8 +69,24 @@ We here implement an iterative approach inspired by the [Graham Scan](https://en
 1. We define the edges of the convex hull to have a direction; i.e. going FROM a node TO a node. 
 2. We find a first pair of nodes (a FROM and a TO node) that are an edge of the convex hull. Since we might assume that at least one of the polygon's edges is also an edge of the convex, we can start looking for the first edge of the convex in the edges of the polygon.
 3. We declare this first TO node as the next FROM node.
-4. For this FROM node, we find its TO node. We do this by scanning all of the polygon nodes (except for the ones that already have been declared a TO node; but this is merely an optimization). We can discard a candidate convex edge as soon as we find a single point that is outside of its hemisphere.
+4. For this FROM node, we find its TO node. We do this by scanning all of the polygon nodes (except for the ones that already have been declared a TO node; but this is merely an optimization). We can discard a candidate convex edge as soon as we find a single point that is outside of its hemisphere. For further optimization purposes, we can use the point that is outside of the hemisphere as the next candidate TO node.
 5. We repeat step 3 and 4 until the TO node equals our very first FROM node, i.e. the convex hull is closed.
+
+### Graham Scan
+The previously described scan suffers from the necessity that for every candidate convex edge, all polygon nodes have to be tested. A further optimized approach is a spherical version of the Graham Scan:
+
+1. We store the convex hull nodes in a circular linked list of nodes.
+2. We find a first node pair that define a convex edge and insert it into the aforementioned structure.
+3. For a polygon node, we find a constraint (i.e. convex hull edge / great circle) outside which the node lies (note: A point might lie outside multiple constraint). If we cannot find a constraint outside which a node lies, the node is inside the the convex hull and can be discarded
+4. We insert the polygon node in the convex hull node structure between the convex nodes that define the constraint that the polygon node is outside of.
+5. We verify if the insertion caused the successive node in the convex hull node structure to become non-convex. We can do this either by (also see figure below):
+    - Drawing a candidate convex edges from the inserted node to the node after the next. We then verify if the node next to the inserted node is inside or outside of the just created candidate edge.
+    - Comparing the angles a) between the node before the inserted node, the inserted node, and the node after the inserted node and b) between the node before the inserted node, the inserted node, and the next node after the inserted node. 
+6. If the following node has become non-convex, we remove it from the convex hull nodes structure and jump back to step 5.
+7. We take the next polygon node and jump back to step 3.
+    
+    
+![Graham Merge](images/graham_merge.png)
 
 ### Improvements through order:
 Conceptually, a FROM node's TO node is probably geographically close, which probably means also close in index space. The initial sorting of the nodes therefore appears relevant. As of now, no we did not attempt an optimal sorting. However, we search the TO node by starting with the immediate neighbors left and right (in index space) of the FROM node. We then iteratively step further away.
