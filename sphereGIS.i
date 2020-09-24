@@ -41,6 +41,10 @@
 %pythoncode %{
 import numpy
 
+def find_first_indices(lon_nodes, lat_nodes):
+    out = numpy.full(2, [-1], dtype=numpy.int32)
+    _find_first_indices(lon_nodes, lat_nodes, out)    
+    return out[0], out[1]
     
 def lonlat2convex(lon_nodes, lat_nodes):
     out = numpy.full(lon_nodes.shape, [-1], dtype=numpy.int32)
@@ -59,6 +63,8 @@ def intersects_convex_gc(lon_points, lat_points, gc_x, gc_y, gc_z):
     _intersects_convex(lon_points, lat_points, gc_x, gc_y, gc_z, out)
     out = numpy.array(out, dtype=numpy.bool)
     return out
+    
+
 
 %}
 

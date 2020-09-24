@@ -78,9 +78,11 @@ class SphericalPolygon:
         x, y, z = self.nodes.as_ecef().transpose()
         convex_node_indices = sphereGIS.lonlat2convex(self.nodes.lon, self.nodes.lat)
         return convex_node_indices 
+
+class ConvexEdges:
+    pass
         
-        
-class Edges:
+class Edges(ConvexEdges):
     
     def __init__(self):
         self.gcs = numpy.empty([0, 3], dtype=numpy.float)

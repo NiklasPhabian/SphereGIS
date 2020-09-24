@@ -1,3 +1,9 @@
+void _find_first_indices(double* lon, int len_lon,
+                        double* lat, int len_lat,                          
+                        int* convex_nodes, int len_nodes);
+    
+    
+
 void _find_convex_hull( double* lon, int len_lon,
                         double* lat, int len_lat,                          
                         int* convex_nodes, int len_nodes);
